@@ -1,0 +1,36 @@
+name: Climate Agent
+
+on:
+  schedule:
+    - cron: "0 6 * * *"   # runs daily at 06:00 UTC
+  workflow_dispatch: {}    # allows manual runs with a button
+
+jobs:
+  run-agent:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install pandas numpy matplotlib scikit-learn requests
+
+      - name: Run climate agent
+        run: |
+          python climate_ai_agent.py
+
+      - name: Commit outputs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add agent_outputs/* || true
+          git add agent_state.json || true
+          git commit -m "Daily climate update" || echo "No changes to commit"
+          git push
